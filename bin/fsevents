@@ -1,0 +1,31 @@
+#!/usr/bin/env RBENV_VERSION=system ruby
+
+# This file is part of ttcyborg.
+
+# ttcyborg is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# ttcyborg is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
+
+require "rubygems"
+require "fsevents"
+
+
+base_dir = File.join(File.dirname(__FILE__), "..")
+input_dirs = ["coffee", "haml"]
+stream = FSEvents::Stream.watch(input_dirs, :latency => 1) do |events|
+  Dir.chdir(base_dir)
+  puts events.modified_files
+  if events.modified_files
+    puts `env RBENV_VERSION=1.9.2-p290 make` # so we use newer haml
+  end
+end
+stream.run

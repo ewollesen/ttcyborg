@@ -1,0 +1,40 @@
+/
+  This file is part of ttcyborg.
+
+  ttcyborg is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  ttcyborg is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
+!!! 5
+%head
+  %script{src: "jquery.js"}
+  %script{src: "popup.js"}
+  :css
+    body {
+      width: 300px;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+  %body
+    #laptop_div
+      Laptop
+      %ul
+        = list_of ["Mac", "PC", "Linux", "iPhone", "Chrome", "Cake"] do |laptop|
+          %label
+            %input{type: "radio", name: "laptop", id: "laptop_#{laptop.downcase}"}
+            #{laptop}
+    #autonod_div
+      %label
+        %input{type: "checkbox", name: "autonod", id: "autonod", value: "true"}
+        Autonod
