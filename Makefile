@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
 
+
+# alter me for linuxa
+CHROME = /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+
 all: ttcyborg \
      ttcyborg/content.js \
      ttcyborg/popup.js \
@@ -24,6 +28,8 @@ all: ttcyborg \
      ttcyborg/icon.ico
 
 package: package-prep all
+	$(CHROME) --pack-extension=./ttcyborg/ \
+                  --pack-extension-key=../ttcyborg.pem
 
 ttcyborg:
 	-mkdir ttcyborg
