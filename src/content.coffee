@@ -44,6 +44,7 @@ injector = ->
       b.promise()
 
     vote: (val, callback) ->
+      console.log("voting #{val}")
       vh = $.sha1(ttcyborg.roomId + val + ttcyborg.songId)
       th = $.sha1(Math.random().toString())
       ph = $.sha1(Math.random().toString())
@@ -60,7 +61,7 @@ injector = ->
     trackStart: (msg) ->
       event = document.createEvent("Event")
       ttcyborg.songId = msg.fileId
-      event.initEvent "ttcyborg_trackStart", true, true
+      event.initEvent "trackStart", true, true
       document.getElementById("ttcyborg").dispatchEvent event
 
     messageReceived: (msg) ->
@@ -103,11 +104,13 @@ injector = ->
 
   turntable.addEventListener "message", window.ttcyborg.messageReceived
   turntable.addEventListener "trackstart", window.ttcyborg.trackStart
-  q = $("<div/>").hide().attr("id", "ttcyborg").attr("data-autonod", true).attr("data-laptop", "chrome").on("ttcyborg_trackStart", (event) ->
-    autonod = (if $(this).attr("data-autonod") is "true" then true else false)
-    if autonod
-      ttcyborg.vote "up", (data) ->
-        console.log "voted up", data
+  q = $("<div/>")
+    .hide()
+    .attr("id", "ttcyborg")
+    .attr("data-autonod", true)
+    .attr("data-laptop", "chrome")
+    .on("trackStart", (event) ->
+      ttcyborg.vote("up") if $(this).attr("data-autonod") is "true"
   )
   $("body").append q
 
