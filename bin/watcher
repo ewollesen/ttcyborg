@@ -15,6 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
 
-while inotifywait -e modify coffee/*.coffee haml/*.haml; do
+while inotifywait -e modify src/*; do
     make
 done

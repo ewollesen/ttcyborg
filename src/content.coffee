@@ -64,20 +64,42 @@ injector = ->
       document.getElementById("ttcyborg").dispatchEvent event
 
     messageReceived: (msg) ->
+      console.log "content (inner) received event", msg if msg.command
+
       switch msg.command
         when "registered"
-          ttcyborg.roomId = msg.roomid
-          ttcyborg.laptop = msg.user[0].laptop
-          $("#ttcyborg").attr "data-laptop", ttcyborg.laptop
-          ttcyborg.registered()
+          ttcyborg._registered(msg)
         when "newsong"
-          ttcyborg.songId = msg.room.metadata.current_song._id
-          ttcyborg.roomId = msg.roomid
+          ttcyborg._newSong(msg)
 
-    registered: ->
+      true
+
+    _registered: (msg) ->
+      roomId = msg.roomid
+      laptop = msg.user[0].laptop
+
+      ttcyborg.roomId = roomId
+      ttcyborg.laptop = laptop
+      $("#ttcyborg").attr("data-laptop", laptop)
+      $("#ttcyborg").attr("data-roomId", roomId)
+      ttcyborg._triggerEvent("registered")
+
+    _newSong: (msg) ->
+      roomId = msg.roomid
+      songId = msg.room.metadata.current_song._id
+
+      ttcyborg.songId = songId
+      ttcyborg.roomId = roomId
+      $("#ttcyborg").attr("data-songId", songId)
+      $("#ttcyborg").attr("data-roomId", roomId)
+      ttcyborg._triggerEvent("newSong")
+
+    _triggerEvent: (name) ->
+      console.log "content (inner) triggering #{name} event"
       event = document.createEvent("Event")
-      event.initEvent "ttcyborg_registered", true, true
+      event.initEvent name, true, true
       document.getElementById("ttcyborg").dispatchEvent event
+
 
   turntable.addEventListener "message", window.ttcyborg.messageReceived
   turntable.addEventListener "trackstart", window.ttcyborg.trackStart
@@ -123,8 +145,28 @@ setupListener = () ->
       sendResponse
         success: false
         data: e
-  div.bind "ttcyborg_registered", (data) ->
-    chrome.extension.sendRequest({message: "pageAction", data: "enable"})
+  div.bind "registered", ->
+    console.log("content (outer) received registered message")
+    laptop = $("#ttcyborg").attr("data-laptop")
+    roomId = $("#ttcyborg").attr("data-roomId")
+
+    chrome.extension.sendRequest
+      message: "registered"
+      data:
+        roomId: roomId
+        laptop: laptop
+
+  div.bind "newSong", ->
+    console.log("content (outer) received newSong message")
+    songId = $("#ttcyborg").attr("data-songId")
+    roomId = $("#ttcyborg").attr("data-roomId")
+
+    chrome.extension.sendRequest
+      message: "newSong"
+      data:
+        roomId: roomId
+        songId: songId
+
 
 $ ->
   script = $("<script/>").text("(#{injector})();")

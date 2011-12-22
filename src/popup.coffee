@@ -15,59 +15,66 @@ You should have received a copy of the GNU General Public License
 along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-laptopFromId = (id) ->
-  id.replace("laptop_", "")
+class Popup
 
-re = /https?:\/\/[^\/]*turntable\.fm\/.*/i
+  constructor: ->
+    @_findTabId (tabId) =>
+      @_initLaptopRadio(tabId)
+      @_initAutonodCheckbox(tabId)
 
-ttfmTabId = (cb) ->
-  chrome.windows.getAll
-    populate: true,
-    (windows) ->
-      $.each windows, (_, window) ->
-        $.each window.tabs, (_, tab) ->
-          if re.test(tab.url)
-            console.log("tabId", tab.id)
-            cb(tab.id)
-            return
+  _findTabId: (cb) ->
+    re = @_ttRe
+    chrome.windows.getAll
+      populate: true,
+      (windows) ->
+        $.each windows, (_, window) ->
+          $.each window.tabs, (_, tab) ->
+            if re.test(tab.url)
+              # console.log("tabId", tab.id)
+              cb(tab.id)
+              return
 
-initLaptopRadio = (tabId) ->
-  chrome.tabs.sendRequest tabId,
-    message: "getLaptop"
-    (r) ->
-      unless r.success
-        throw {message: "Error getting laptop", data: r}
-      $("#laptop_#{r.data}").attr("checked", true)
+  _ttRe: /https?:\/\/[^\/]*turntable\.fm\/.*/i
 
-  $("input[name=laptop]").click ->
+  _initLaptopRadio: (tabId) ->
+    laptop = localStorage["ttcyborg.laptop"]
+    $("#laptop_#{laptop}").attr("checked", true)
+
+    $("input[name=laptop]").click (e) =>
+      laptop = @_laptopFromId(e.target.id)
+
+      chrome.tabs.sendRequest tabId,
+        message: "laptop"
+        data: laptop,
+        (response) ->
+          if response.success
+            localStorage["ttcyborg.laptop"] = response.data
+          else
+            throw {message: "Error setting laptop", data: r}
+
+  _laptopFromId: (id) ->
+    id.replace("laptop_", "")
+
+  _initAutonodCheckbox: (tabId) ->
+    autonod = true
     chrome.tabs.sendRequest tabId,
-      message: "laptop"
-      data: laptopFromId(@.id),
-      (r) ->
-        unless r.success
-          throw {message: "Error setting laptop", data: r}
-
-initAutonod = (tabId) ->
-  autonod = true
-  chrome.tabs.sendRequest tabId,
-    message: "getAutonod"
-    (r) ->
-      unless r.success
-        throw {message: "Error setting autonod", data: r}
-      autonod ||= r.data
-      v = if autonod then "checked" else ""
-      $("input[name=autonod]").attr("checked", v)
-
-  $("input[name=autonod]").click ->
-    value = $(@).is(":checked")
-    chrome.tabs.sendRequest tabId,
-      message: "autonod"
-      data: value,
+      message: "getAutonod"
       (r) ->
         unless r.success
           throw {message: "Error setting autonod", data: r}
+        autonod ||= r.data
+        v = if autonod then "checked" else ""
+        $("input[name=autonod]").attr("checked", v)
+
+    $("input[name=autonod]").click ->
+      value = $(@).is(":checked")
+      chrome.tabs.sendRequest tabId,
+        message: "autonod"
+        data: value,
+        (r) ->
+          unless r.success
+            throw {message: "Error setting autonod", data: r}
+
 
 $ ->
-  ttfmTabId (tabId) ->
-    initLaptopRadio(tabId)
-    initAutonod(tabId)
+  new Popup()

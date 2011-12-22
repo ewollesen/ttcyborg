@@ -15,10 +15,33 @@ You should have received a copy of the GNU General Public License
 along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-handleRequest = (request, sender, sendResponse) ->
-  chrome.pageAction.show(sender.tab.id)
-  sendResponse
-    success: true
+class Background
+
+  constructor: () ->
+    chrome.extension.onRequest.addListener(@_handleRequest)
+
+  _handleRequest: (request, sender, sendResponse) =>
+    console.log("request received in background.js", request, sender)
+    switch request.message
+      when "registered"
+        console.log("background received registered message")
+        localStorage["laptop"] = request.data.laptop
+        localStorage["roomId"] = request.data.roomId
+        chrome.pageAction.show(sender.tab.id)
+        sendResponse
+          success: true
+      when "newSong"
+        console.log("background received newSong message")
+        localStorage["songId"] = request.data.songId
+        localStorage["roomId"] = request.data.roomId
+        sendResponse
+          success: true
+      else
+        console.log("request received in background.js", request, sender)
+        sendResponse
+          success: false
+          message: "Unknown message #{request.message}"
+
 
 $ ->
-  chrome.extension.onRequest.addListener(handleRequest)
+  new Background()
