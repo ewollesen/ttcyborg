@@ -8,10 +8,7 @@ GPLv2, see COPYING for more info.
 
 = KNOWN BUGS
 
-* When you enter a new room, the autonod box is automatically checked.
-* When you enter a new room, your laptop reverts to its "real" value.
 * The cake laptop option does not work, I suspect this is something done by tt.fm.
-* If you select a laptop, then click the page icon again, it displays your "real" laptop again.
 
 = FREQUENTLY ASKED QUESTIONS
 

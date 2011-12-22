@@ -25,7 +25,7 @@ class Background
     switch request.message
       when "registered"
         console.log("background received registered message")
-        localStorage["laptop"] = request.data.laptop
+        localStorage["laptop"] ||= request.data.laptop
         localStorage["roomId"] = request.data.roomId
         chrome.pageAction.show(sender.tab.id)
         sendResponse

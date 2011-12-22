@@ -59,15 +59,9 @@ class Popup
     id.replace("laptop_", "")
 
   _initAutonodCheckbox: (tabId) ->
-    autonod = true
-    chrome.tabs.sendRequest tabId,
-      message: "getAutonod"
-      (r) ->
-        unless r.success
-          throw {message: "Error setting autonod", data: r}
-        autonod ||= r.data
-        v = if autonod then "checked" else ""
-        $("input[name=autonod]").attr("checked", v)
+    autonod = localStorage["autonod"] || "true"
+    v = if autonod is "true" then "checked" else ""
+    $("input[name=autonod]").attr("checked", v)
 
     $("input[name=autonod]").click ->
       value = $(@).is(":checked")
@@ -75,7 +69,9 @@ class Popup
         message: "autonod"
         data: value,
         (r) ->
-          unless r.success
+          if r.success
+            localStorage["autonod"] = value
+          else
             throw {message: "Error setting autonod", data: r}
 
 

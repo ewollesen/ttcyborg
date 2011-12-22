@@ -127,23 +127,10 @@ setupListener = () ->
             success: true
             data: request.data
         when "autonod"
-          console.log("content autonod ", request.data)
+          console.log("content (outer) autonod ", request.data)
           div.attr("data-autonod", request.data)
           sendResponse
             success: true
-            message: "autonod: #{request.data}"
-        when "getAutonod"
-          console.log "getAutonod", div.attr("data-autonod")
-          sendResponse
-            success: true
-            data: div.attr("data-autonod")
-            message: "getAutonod"
-        when "getLaptop"
-          console.log "content getLaptop", div.attr("data-laptop")
-          sendResponse
-            success: true
-            data: div.attr("data-laptop")
-            message: "getLaptop"
     catch e
       sendResponse
         success: false
