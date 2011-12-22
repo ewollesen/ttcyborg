@@ -37,20 +37,23 @@ class Popup
   _ttRe: /https?:\/\/[^\/]*turntable\.fm\/.*/i
 
   _initLaptopRadio: (tabId) ->
-    laptop = localStorage["ttcyborg.laptop"]
-    $("#laptop_#{laptop}").attr("checked", true)
-
-    $("input[name=laptop]").click (e) =>
-      laptop = @_laptopFromId(e.target.id)
+    $("input[name=laptop]").click (e) ->
+      laptop = $(e.target).val()
+      console.log("clicked: #{laptop}")
 
       chrome.tabs.sendRequest tabId,
         message: "laptop"
         data: laptop,
         (response) ->
           if response.success
-            localStorage["ttcyborg.laptop"] = response.data
+            localStorage["laptop"] = response.data
           else
             throw {message: "Error setting laptop", data: r}
+
+    laptop = localStorage["laptop"]
+    console.log("initializing popup laptop value: #{laptop}")
+    $("#laptop_#{laptop}").attr("checked", true)
+
 
   _laptopFromId: (id) ->
     id.replace("laptop_", "")

@@ -32,7 +32,7 @@
       %ul
         = list_of ["Mac", "PC", "Linux", "iPhone", "Chrome", "Cake"] do |laptop|
           %label
-            %input{type: "radio", name: "laptop", id: "laptop_#{laptop.downcase}"}
+            %input{type: "radio", name: "laptop", id: "laptop_#{laptop.downcase}", value: laptop.downcase}
             #{laptop}
     #autonod_div
       %label

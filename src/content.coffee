@@ -122,7 +122,7 @@ setupListener = () ->
           $("head").append(script)
           sendResponse
             success: true
-            message: "laptop: #{request.data}"
+            data: request.data
         when "autonod"
           console.log("content autonod ", request.data)
           div.attr("data-autonod", request.data)

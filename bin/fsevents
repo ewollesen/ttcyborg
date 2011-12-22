@@ -20,7 +20,7 @@ require "fsevents"
 
 
 base_dir = File.join(File.dirname(__FILE__), "..")
-input_dirs = ["coffee", "haml"]
+input_dirs = ["src",]
 stream = FSEvents::Stream.watch(input_dirs, :latency => 1) do |events|
   Dir.chdir(base_dir)
   puts events.modified_files
