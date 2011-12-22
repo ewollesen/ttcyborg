@@ -20,16 +20,21 @@ class Background
   constructor: () ->
     chrome.extension.onRequest.addListener(@_handleRequest)
 
-  _handleRequest: (request, sender, sendResponse) =>
+  _handleRequest: (request, sender, sendResponse) ->
     console.log("request received in background.js", request, sender)
     switch request.message
       when "registered"
         console.log("background received registered message")
+        console.log("current ls", localStorage["laptop"])
+        console.log("value received", request.data.laptop)
         localStorage["laptop"] ||= request.data.laptop
+        console.log("winner", localStorage["laptop"])
         localStorage["roomId"] = request.data.roomId
         chrome.pageAction.show(sender.tab.id)
         sendResponse
           success: true
+          data:
+            laptop: localStorage["laptop"]
       when "newSong"
         console.log("background received newSong message")
         localStorage["songId"] = request.data.songId

@@ -15,8 +15,8 @@
 
 
 # alter me for linuxa
-CHROME = /usr/bin/chromium-browser
-# CHROME = /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+#CHROME = /usr/bin/chromium-browser
+CHROME = /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
 
 all: ttcyborg \
      ttcyborg/content.js \

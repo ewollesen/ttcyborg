@@ -114,18 +114,29 @@ injector = ->
   )
   $("body").append q
 
+setLaptop = (laptop) ->
+  console.log("content (outer) setLaptop #{laptop}")
+  js = """
+ttcyborg.ttfm({api: "user.modify", laptop: "#{laptop}"}, function (data) {
+  if (data.success) {
+    console.log("ttfm reports success setting laptop to #{laptop}");
+  } else {
+    console.log("ttfm reports error setting laptop to #{laptop}", data);
+  }
+});
+"""
+  script = $("<script/>").text(js)
+  $("head").append(script)
+
 setupListener = () ->
   div = $("#ttcyborg")
   chrome.extension.onRequest.addListener (request, sender, sendResponse) ->
     try
       switch request.message
         when "laptop"
-          js = """ttcyborg.ttfm({api: "user.modify", laptop: "#{request.data}"}, function (data) {console.log("ttfm responds", data); sendResponse({})});"""
-          script = $("<script/>").text(js)
-          $("head").append(script)
+          setLaptop request.data
           sendResponse
             success: true
-            data: request.data
         when "autonod"
           console.log("content (outer) autonod ", request.data)
           div.attr("data-autonod", request.data)
@@ -144,7 +155,18 @@ setupListener = () ->
       message: "registered"
       data:
         roomId: roomId
-        laptop: laptop
+        laptop: laptop,
+      (response) ->
+        # It is necessary to set the laptop, even if the registered event
+        # reports a match. Something else must be firing, that is resetting
+        # the value after the registration event.
+
+        # A 1 second delay seems to be too quick, 2 seconds has worked every
+        # time so far.
+        setTimeout () ->
+          console.log("timeout")
+          setLaptop(response.data.laptop)
+        , 2000
 
   div.bind "newSong", ->
     console.log("content (outer) received newSong message")

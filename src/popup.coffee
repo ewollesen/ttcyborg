@@ -46,7 +46,8 @@ class Popup
         data: laptop,
         (response) ->
           if response.success
-            localStorage["laptop"] = response.data
+            console.log("popup updating ls laptop to #{laptop}")
+            localStorage["laptop"] = laptop
           else
             throw {message: "Error setting laptop", data: r}
 
