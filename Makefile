@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with ttcyborg.  If not, see <http://www.gnu.org/licenses/>.
 
+.PHONY: clean
 
 # alter me for linuxa
 #CHROME = /usr/bin/chromium-browser
@@ -27,6 +28,9 @@ all: ttcyborg \
      ttcyborg/popup.html \
      ttcyborg/manifest.json \
      ttcyborg/icon.ico
+
+clean:
+	rm -rf ttcyborg/*
 
 package: package-prep all
 	$(CHROME) --pack-extension=./ttcyborg/ \

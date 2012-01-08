@@ -19,8 +19,9 @@ class Popup
 
   constructor: ->
     @_findTabId (tabId) =>
-      @_initLaptopRadio(tabId)
-      @_initAutonodCheckbox(tabId)
+      @_tabId = tabId
+      @_initLaptopRadio()
+      @_initAutonodCheckbox()
 
   _findTabId: (cb) ->
     re = @_ttRe
@@ -30,50 +31,41 @@ class Popup
         $.each windows, (_, window) ->
           $.each window.tabs, (_, tab) ->
             if re.test(tab.url)
-              # console.log("tabId", tab.id)
               cb(tab.id)
               return
 
   _ttRe: /https?:\/\/[^\/]*turntable\.fm\/.*/i
 
-  _initLaptopRadio: (tabId) ->
-    $("input[name=laptop]").click (e) ->
-      laptop = $(e.target).val()
-      console.log("clicked: #{laptop}")
-
-      chrome.tabs.sendRequest tabId,
-        message: "laptop"
-        data: laptop,
-        (response) ->
-          if response.success
-            console.log("popup updating ls laptop to #{laptop}")
-            localStorage["laptop"] = laptop
-          else
-            throw {message: "Error setting laptop", data: r}
-
-    laptop = localStorage["laptop"]
-    console.log("initializing popup laptop value: #{laptop}")
+  _initLaptopRadio: ->
+    $("input[name=laptop]").click(@_laptopClicked)
+    laptop = localStorage["laptop"] # Shared with background.js
+    console.log("initializing laptop radio in tab #{@_tabId} #{laptop}")
     $("#laptop_#{laptop}").attr("checked", true)
 
+  _laptopClicked: (e) =>
+    laptop = $(e.target).val()
+    console.log("_laptopClicked: #{laptop}")
+    localStorage["laptop"] = laptop # Shared with background.js
+    # This is sent to content.js
+    chrome.tabs.sendRequest @_tabId,
+      message: "laptop"
+      data: laptop
 
-  _laptopFromId: (id) ->
-    id.replace("laptop_", "")
-
-  _initAutonodCheckbox: (tabId) ->
-    autonod = localStorage["autonod"] || "true"
+  _initAutonodCheckbox: ->
+    autonod = localStorage["autonod"] || "false" # Shared with background.js
+    console.log("initializing autonod checkbox in tab #{@_tabId} #{autonod}")
     v = if autonod is "true" then "checked" else ""
-    $("input[name=autonod]").attr("checked", v)
+    $("input#autonod").attr("checked", v)
+    $("input#autonod").click(@_autonodClicked)
 
-    $("input[name=autonod]").click ->
-      value = $(@).is(":checked")
-      chrome.tabs.sendRequest tabId,
-        message: "autonod"
-        data: value,
-        (r) ->
-          if r.success
-            localStorage["autonod"] = value
-          else
-            throw {message: "Error setting autonod", data: r}
+  _autonodClicked: (e) =>
+    autonod = $(e.target).is(":checked")
+    localStorage["autonod"] = autonod # Shared with background.js
+    console.log("_autonodClicked: #{autonod}")
+    # This is sent to content.js
+    chrome.tabs.sendRequest @_tabId,
+      message: "autonod"
+      data: autonod
 
 
 $ ->

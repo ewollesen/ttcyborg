@@ -58,15 +58,19 @@ injector = ->
 
       ttcyborg.ttfm rq, callback
 
+    # Called by a listener attached to the window's turntable object.
     trackStart: (msg) ->
       event = document.createEvent("Event")
       ttcyborg.songId = msg.fileId
       event.initEvent "trackStart", true, true
       document.getElementById("ttcyborg").dispatchEvent event
+      console.log("content (inner) autonod value is #{localStorage["autonod"]}")
+      if "true" is localStorage["autonod"]
+        ttcyborg.vote("up")
+
 
     messageReceived: (msg) ->
-      console.log "content (inner) received event", msg if msg.command
-
+      console.log "content (inner) received event #{msg.command}", msg if msg.command
       switch msg.command
         when "registered"
           ttcyborg._registered(msg)
@@ -76,45 +80,45 @@ injector = ->
       true
 
     _registered: (msg) ->
-      roomId = msg.roomid
-      laptop = msg.user[0].laptop
-
-      ttcyborg.roomId = roomId
-      ttcyborg.laptop = laptop
-      $("#ttcyborg").attr("data-laptop", laptop)
-      $("#ttcyborg").attr("data-roomId", roomId)
+      ttcyborg.roomId = msg.roomid
+      # The laptop is included in this message, which we will communicate to
+      # content.js via a data-* attribute so that it can in turn be passed on
+      # to popup.js as a default in the event that the user has not yet
+      # selected a laptop.
+      $("#ttcyborg").attr("data-laptop", msg.user[0].laptop)
       ttcyborg._triggerEvent("registered")
 
     _newSong: (msg) ->
-      roomId = msg.roomid
-      songId = msg.room.metadata.current_song._id
-
-      ttcyborg.songId = songId
-      ttcyborg.roomId = roomId
-      $("#ttcyborg").attr("data-songId", songId)
-      $("#ttcyborg").attr("data-roomId", roomId)
+      ttcyborg.roomId = msg.roomid
+      ttcyborg.songId = msg.room.metadata.current_song._id
       ttcyborg._triggerEvent("newSong")
 
     _triggerEvent: (name) ->
       console.log "content (inner) triggering #{name} event"
       event = document.createEvent("Event")
       event.initEvent name, true, true
+      # These events are received by content (outer) via the #ttcyborg div.
       document.getElementById("ttcyborg").dispatchEvent event
 
 
   turntable.addEventListener "message", window.ttcyborg.messageReceived
   turntable.addEventListener "trackstart", window.ttcyborg.trackStart
+
   q = $("<div/>")
     .hide()
     .attr("id", "ttcyborg")
-    .attr("data-autonod", true)
-    .attr("data-laptop", "chrome")
-    .on("trackStart", (event) ->
-      ttcyborg.vote("up") if $(this).attr("data-autonod") is "true"
-  )
   $("body").append q
 
-setLaptop = (laptop) ->
+
+assignLaptop = (laptop) ->
+  localStorage["laptop"] = laptop
+  setLaptop()
+
+assignAutonod = (autonod) ->
+  localStorage["autonod"] = autonod
+
+setLaptop = ->
+  laptop = localStorage["laptop"]
   console.log("content (outer) setLaptop #{laptop}")
   js = """
 ttcyborg.ttfm({api: "user.modify", laptop: "#{laptop}"}, function (data) {
@@ -128,56 +132,48 @@ ttcyborg.ttfm({api: "user.modify", laptop: "#{laptop}"}, function (data) {
   script = $("<script/>").text(js)
   $("head").append(script)
 
+
 setupListener = () ->
   div = $("#ttcyborg")
+
+  div.bind "registered", ->
+    console.log("content (outer) received registered message")
+    twoSeconds = 2000
+
+    # This message is sent to background.js
+    chrome.extension.sendRequest
+      message: "registered"
+      data:
+        # This value is received by content (inner) upon registration, and is
+        # used as a default in the event that the user has not yet selected a
+        # laptop.
+        laptop: $("#ttcyborg").attr("data-laptop")
+
+    # It is necessary to set the laptop here, because something else is
+    # firing, that resets the laptop after the registration event.
+    #
+    # A 1 second delay seems to be too quick, 2 seconds has worked every time
+    # so far.
+    setTimeout () ->
+      setLaptop()
+    , twoSeconds
+
+  # This receives messages from popup.js
   chrome.extension.onRequest.addListener (request, sender, sendResponse) ->
     try
       switch request.message
         when "laptop"
-          setLaptop request.data
+          assignLaptop request.data
           sendResponse
             success: true
         when "autonod"
-          console.log("content (outer) autonod ", request.data)
-          div.attr("data-autonod", request.data)
+          assignAutonod request.data
           sendResponse
             success: true
     catch e
       sendResponse
         success: false
         data: e
-  div.bind "registered", ->
-    console.log("content (outer) received registered message")
-    laptop = $("#ttcyborg").attr("data-laptop")
-    roomId = $("#ttcyborg").attr("data-roomId")
-
-    chrome.extension.sendRequest
-      message: "registered"
-      data:
-        roomId: roomId
-        laptop: laptop,
-      (response) ->
-        # It is necessary to set the laptop, even if the registered event
-        # reports a match. Something else must be firing, that is resetting
-        # the value after the registration event.
-
-        # A 1 second delay seems to be too quick, 2 seconds has worked every
-        # time so far.
-        setTimeout () ->
-          console.log("timeout")
-          setLaptop(response.data.laptop)
-        , 2000
-
-  div.bind "newSong", ->
-    console.log("content (outer) received newSong message")
-    songId = $("#ttcyborg").attr("data-songId")
-    roomId = $("#ttcyborg").attr("data-roomId")
-
-    chrome.extension.sendRequest
-      message: "newSong"
-      data:
-        roomId: roomId
-        songId: songId
 
 
 $ ->

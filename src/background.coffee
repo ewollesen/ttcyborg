@@ -21,28 +21,23 @@ class Background
     chrome.extension.onRequest.addListener(@_handleRequest)
 
   _handleRequest: (request, sender, sendResponse) ->
-    console.log("request received in background.js", request, sender)
+    console.log("background received #{request.message} message")
     switch request.message
       when "registered"
-        console.log("background received registered message")
-        console.log("current ls", localStorage["laptop"])
-        console.log("value received", request.data.laptop)
-        localStorage["laptop"] ||= request.data.laptop
-        console.log("winner", localStorage["laptop"])
-        localStorage["roomId"] = request.data.roomId
         chrome.pageAction.show(sender.tab.id)
+        # Content.js sends the user's "real" laptop value, which we use here
+        # as a default. This localStorage is shared with popup.js, and so can
+        # be used to initialize the laptop selection input there.
+        localStorage["laptop"] ||= request.data.laptop
+        console.log("background ls laptop is #{localStorage["laptop"]}")
         sendResponse
           success: true
-          data:
-            laptop: localStorage["laptop"]
-      when "newSong"
-        console.log("background received newSong message")
-        localStorage["songId"] = request.data.songId
-        localStorage["roomId"] = request.data.roomId
-        sendResponse
-          success: true
+      # when "newSong"
+      #   sendResponse
+      #     success: true
       else
-        console.log("request received in background.js", request, sender)
+        console.log("request", request)
+        console.log("sender", sender)
         sendResponse
           success: false
           message: "Unknown message #{request.message}"
