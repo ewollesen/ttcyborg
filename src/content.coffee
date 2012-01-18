@@ -138,7 +138,7 @@ setupListener = () ->
 
   div.bind "registered", ->
     console.log("content (outer) received registered message")
-    twoSeconds = 2000
+    twoPointOneSeconds = 2100
 
     # This message is sent to background.js
     chrome.extension.sendRequest
@@ -149,14 +149,11 @@ setupListener = () ->
         # laptop.
         laptop: $("#ttcyborg").attr("data-laptop")
 
-    # It is necessary to set the laptop here, because something else is
-    # firing, that resets the laptop after the registration event.
-    #
-    # A 1 second delay seems to be too quick, 2 seconds has worked every time
-    # so far.
+    # It is necessary to set the laptop here, because tt.fm client-side code
+    # waits two seconds before firing off a setLaptop of their own.
     setTimeout () ->
       setLaptop()
-    , twoSeconds
+    , twoPointOneSeconds
 
   # This receives messages from popup.js
   chrome.extension.onRequest.addListener (request, sender, sendResponse) ->
