@@ -91,7 +91,10 @@ injector = ->
     _newSong: (msg) ->
       ttcyborg.roomId = msg.roomid
       ttcyborg.songId = msg.room.metadata.current_song._id
-      ttcyborg._triggerEvent("newSong")
+      # ttcyborg._triggerEvent("newSong")
+      console.log("content (inner) autonod value is #{localStorage["autonod"]}")
+      if "true" is localStorage["autonod"]
+        ttcyborg.vote("up")
 
     _triggerEvent: (name) ->
       console.log "content (inner) triggering #{name} event"
@@ -102,7 +105,7 @@ injector = ->
 
 
   turntable.addEventListener "message", window.ttcyborg.messageReceived
-  turntable.addEventListener "trackstart", window.ttcyborg.trackStart
+  #turntable.addEventListener "trackstart", window.ttcyborg.trackStart # I think this has gone away?
 
   q = $("<div/>")
     .hide()
