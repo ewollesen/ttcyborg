@@ -27,7 +27,9 @@ all: ttcyborg \
      ttcyborg/background.html \
      ttcyborg/popup.html \
      ttcyborg/manifest.json \
-     ttcyborg/icon.ico
+     ttcyborg/icon16.png \
+     ttcyborg/icon48.png \
+     ttcyborg/icon128.png
 
 clean:
 	rm -rf ttcyborg/*
@@ -41,7 +43,7 @@ ttcyborg:
 
 package-prep: ttcyborg ttcyborg/README ttcyborg/COPYING
 
-ttcyborg/icon.ico: assets/icon.ico
+ttcyborg/icon%.png: assets/icon%.png
 	cp $< $@
 
 ttcyborg/manifest.json: src/manifest.json
